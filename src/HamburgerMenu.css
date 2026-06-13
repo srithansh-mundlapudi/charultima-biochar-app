@@ -1,0 +1,128 @@
+/* Hamburger Button Styles */
+.hamburger-button {
+ position: fixed;
+ top: 20px;
+ right: 20px;
+ width: 30px;
+ height: 24px;
+ z-index: 1000;
+ cursor: pointer;
+ display: flex;
+ flex-direction: column;
+ justify-content: space-between;
+ background: transparent;
+ border: none;
+ padding: 0;
+}
+
+
+.hamburger-button span {
+ width: 100%;
+ height: 3px;
+ background-color: #26a61b;
+ border-radius: 3px;
+ transition: all 0.3s ease;
+}
+
+
+/* Hamburger Animation */
+.hamburger-button.open span:nth-child(1) {
+ transform: translateY(10px) rotate(45deg);
+}
+
+
+.hamburger-button.open span:nth-child(2) {
+ opacity: 0;
+}
+
+
+.hamburger-button.open span:nth-child(3) {
+ transform: translateY(-10px) rotate(-45deg);
+}
+
+
+/* Sliding Menu */
+.slide-menu {
+ position: fixed;
+ top: 0;
+ right: 0;
+ width: 300px;
+ height: 100vh;
+ background-color: #1a1a1a;
+ transform: translateX(100%);
+ transition: transform 0.3s ease;
+ z-index: 999;
+ box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+
+.slide-menu.open {
+ transform: translateX(0);
+}
+
+
+/* Menu Items */
+.menu-items {
+ padding: 80px 20px 20px;
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+}
+
+
+.menu-item {
+ display: flex;
+ align-items: center;
+ padding: 15px;
+ color: white;
+ text-decoration: none;
+ transition: background-color 0.2s ease;
+ border: none;
+ background: transparent;
+ width: 100%;
+ text-align: left;
+ cursor: pointer;
+ border-radius: 8px;
+}
+
+
+.menu-item:hover {
+ background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+.menu-item svg {
+ width: 24px;
+ height: 24px;
+ margin-right: 12px;
+}
+
+
+/* Overlay */
+.menu-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: rgba(0, 0, 0, 0.5);
+ z-index: 998;
+ opacity: 0;
+ animation: fadeIn 0.3s ease forwards;
+}
+
+
+@keyframes fadeIn {
+ from {
+   opacity: 0;
+ }
+ to {
+   opacity: 1;
+ }
+}
+
+
+/* Active Menu Item */
+.menu-item.active {
+ background-color: rgba(255, 255, 255, 0.15);
+}
