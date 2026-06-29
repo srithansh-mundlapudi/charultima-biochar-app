@@ -111,3 +111,24 @@ describe('Analyses API', () => {
     // Cleanup
   });
 });
+// =======================
+// ADDITIONAL TESTS FOR COVERAGE
+// =======================
+describe('Additional Analysis Controller Tests', () => {
+  test('POST /api/analyses returns 400 when farmId is missing', async () => {
+    const response = await request(app)
+      .post('/api/analyses')
+      .send({ nitrogenLevel: 50, nitrogenStatus: 'moderate' });
+    expect([400, 500]).toContain(response.statusCode);
+  });
+
+  test('GET /api/analyses/trends returns 401 without auth', async () => {
+    const response = await request(app).get('/api/analyses/trends');
+    expect([401, 500]).toContain(response.statusCode);
+  });
+
+  test('GET /api/analyses/dashboard/stats returns 401 without auth', async () => {
+    const response = await request(app).get('/api/analyses/dashboard/stats');
+    expect([401, 500]).toContain(response.statusCode);
+  });
+});

@@ -26,6 +26,27 @@ const BIOCHAR_EFFECTIVENESS = 1.1;
 const BIOCHAR_DENSITY = 10; // tons/acre
 
 // =======================
+// HELPER: Get internal user ID from auth0_id
+// =======================
+const getInternalUserId = async (auth0Id) => {
+  let result = await pool.query(
+    'SELECT id FROM users WHERE auth0_id = $1',
+    [auth0Id]
+  );
+  
+  if (result.rows.length === 0) {
+    // User doesn't exist — create one with placeholder email
+    result = await pool.query(
+      'INSERT INTO users (auth0_id, email) VALUES ($1, $2) RETURNING id',
+      [auth0Id, 'user@example.com']
+    );
+    console.log(`✅ Created new user with auth0_id: ${auth0Id}`);
+  }
+  
+  return result.rows[0].id;
+};
+
+// =======================
 // CALCULATIONS
 // =======================
 
@@ -88,7 +109,10 @@ const calculateAllBiochar = (nitrogenLevels, recommendedNitrogen, cellAreaMeters
 // CRUD OPERATIONS
 // =======================
 
-const saveAnalysis = async (userId, farmId, analysisData) => {
+const saveAnalysis = async (auth0Id, farmId, analysisData) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   const {
     imageUrl,
     nitrogenLevel,
@@ -120,7 +144,10 @@ const saveAnalysis = async (userId, farmId, analysisData) => {
   return result.rows[0];
 };
 
-const getAnalysesByUser = async (userId, farmId = null, limit = 100, offset = 0, search = null) => {
+const getAnalysesByUser = async (auth0Id, farmId = null, limit = 100, offset = 0, search = null) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   let query = 'SELECT * FROM analyses WHERE user_id = $1';
   let params = [userId];
   let paramCount = 2;
@@ -144,7 +171,10 @@ const getAnalysesByUser = async (userId, farmId = null, limit = 100, offset = 0,
   return result.rows;
 };
 
-const getAnalysisById = async (id, userId) => {
+const getAnalysisById = async (id, auth0Id) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   const result = await pool.query(
     'SELECT * FROM analyses WHERE id = $1 AND user_id = $2',
     [id, userId]
@@ -152,7 +182,10 @@ const getAnalysisById = async (id, userId) => {
   return result.rows[0];
 };
 
-const updateAnalysis = async (id, userId, data) => {
+const updateAnalysis = async (id, auth0Id, data) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   const { nitrogenLevel, nitrogenStatus, cropType, soilType, biocharAmount } = data;
 
   const result = await pool.query(
@@ -165,7 +198,10 @@ const updateAnalysis = async (id, userId, data) => {
   return result.rows[0];
 };
 
-const deleteAnalysis = async (id, userId) => {
+const deleteAnalysis = async (id, auth0Id) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   const result = await pool.query(
     'DELETE FROM analyses WHERE id = $1 AND user_id = $2 RETURNING *',
     [id, userId]
@@ -177,7 +213,10 @@ const deleteAnalysis = async (id, userId) => {
 // ANALYTICS & DASHBOARDS
 // =======================
 
-const getTrendAnalytics = async (userId, farmId = null, days = 30) => {
+const getTrendAnalytics = async (auth0Id, farmId = null, days = 30) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   let query = `
     SELECT 
       DATE(created_at) as date,
@@ -200,7 +239,10 @@ const getTrendAnalytics = async (userId, farmId = null, days = 30) => {
   return result.rows;
 };
 
-const getDashboardStats = async (userId, farmId = null) => {
+const getDashboardStats = async (auth0Id, farmId = null) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   let query = `
     SELECT 
       COUNT(*) as total_analyses,
@@ -223,7 +265,10 @@ const getDashboardStats = async (userId, farmId = null) => {
   return result.rows[0];
 };
 
-const getHistoricalDashboard = async (userId, farmId = null, days = 90) => {
+const getHistoricalDashboard = async (auth0Id, farmId = null, days = 90) => {
+  // Convert Auth0 sub to internal user ID
+  const userId = await getInternalUserId(auth0Id);
+  
   // Overall stats
   const statsQuery = `
     SELECT 

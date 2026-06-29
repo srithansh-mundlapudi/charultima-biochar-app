@@ -59,19 +59,14 @@ const getAnalyses = async (req, res) => {
   const { farmId, limit = 100, offset = 0, search } = req.query;
 
   try {
-    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, 'analyses', farmId);
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      metrics.recordCacheHit();
-      metrics.recordResponseTime(true, Date.now() - start);
       return res.json(cached);
     }
 
-    metrics.recordCacheMiss();
     const analyses = await analysisService.getAnalysesByUser(userId, farmId, limit, offset, search);
-    metrics.recordResponseTime(false, Date.now() - start);
     
     if (analyses && analyses.length > 0) {
       await setCache(cacheKey, analyses, CACHE_TTL);
@@ -88,20 +83,14 @@ const getDashboardStats = async (req, res) => {
   const { farmId } = req.query;
 
   try {
-    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, 'stats', farmId);
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      metrics.recordCacheHit();
-      metrics.recordResponseTime(true, Date.now() - start);
       return res.json(cached);
     }
 
-    metrics.recordCacheMiss();
     const stats = await analysisService.getDashboardStats(userId, farmId);
-    metrics.recordResponseTime(false, Date.now() - start);
-    
     await setCache(cacheKey, stats, CACHE_TTL);
 
     res.json(stats);
@@ -116,20 +105,14 @@ const getTrends = async (req, res) => {
   const daysInt = days ? parseInt(days, 10) : 30;
 
   try {
-    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, `trends:${daysInt}`, farmId);
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      metrics.recordCacheHit();
-      metrics.recordResponseTime(true, Date.now() - start);
       return res.json(cached);
     }
 
-    metrics.recordCacheMiss();
     const trends = await analysisService.getTrendAnalytics(userId, farmId, daysInt);
-    metrics.recordResponseTime(false, Date.now() - start);
-    
     await setCache(cacheKey, trends, CACHE_TTL);
 
     res.json(trends);
@@ -190,20 +173,14 @@ const getHistoricalDashboard = async (req, res) => {
   const daysInt = parseInt(days, 10);
 
   try {
-    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, `historical:${daysInt}`, farmId);
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      metrics.recordCacheHit();
-      metrics.recordResponseTime(true, Date.now() - start);
       return res.json(cached);
     }
 
-    metrics.recordCacheMiss();
     const dashboard = await analysisService.getHistoricalDashboard(userId, farmId, daysInt);
-    metrics.recordResponseTime(false, Date.now() - start);
-    
     await setCache(cacheKey, dashboard, CACHE_TTL);
 
     res.json(dashboard);

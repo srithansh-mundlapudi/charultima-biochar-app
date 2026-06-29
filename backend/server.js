@@ -3,6 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const responseTime = require('response-time');
+const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 
 dotenv.config();
 
@@ -24,6 +27,28 @@ app.use(
     console.log(`⏱️ ${req.method} ${req.originalUrl} - ${time.toFixed(2)} ms`);
   })
 );
+
+// =======================
+// RATE LIMITING
+// =======================
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per window
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
+
+// =======================
+// SWAGGER / OPENAPI
+// =======================
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // =======================
 // HEALTH CHECK (Public)
@@ -79,7 +104,7 @@ app.use('/api/analyses', analysisRoutes);
 app.get('/api/metrics', async (req, res) => {
   try {
     const metrics = getMetrics();
-    logMetrics(); // Log to console
+    logMetrics();
     res.json({
       ...metrics,
       timestamp: new Date().toISOString(),
@@ -171,6 +196,7 @@ if (require.main === module) {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📈 Metrics available at /api/metrics`);
+      console.log(`📚 Swagger docs available at /api/docs`);
     });
 
     // Log metrics every 5 minutes

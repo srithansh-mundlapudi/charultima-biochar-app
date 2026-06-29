@@ -10,20 +10,27 @@ jest.mock('../middleware/auth', () => ({
     req.auth = { payload: { sub: 'auth0|test-user-123' } };
     next();
   },
-  getUserIdFromToken: () => 'auth0|test-user-123',
+  getUserIdFromToken: (req) => 'auth0|test-user-123',
 }));
 
 const pool = require('../db/pool');
 
 describe('Farms API', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    pool.query.mockClear();
   });
+
+  const mockUser = {
+    id: 1,
+    auth0_id: 'auth0|test-user-123',
+    email: 'test@example.com',
+    created_at: new Date().toISOString(),
+  };
 
   const mockFarms = [
     {
       id: 1,
-      user_id: 'auth0|test-user-123',
+      user_id: 1,
       farm_name: 'Test Farm',
       location_name: 'Atlanta, GA',
       latitude: 33.749,
@@ -33,12 +40,13 @@ describe('Farms API', () => {
   ];
 
   test('GET /api/farms returns list of farms', async () => {
-    pool.query.mockResolvedValueOnce({
-      rows: mockFarms,
-    });
+    // First query: getInternalUserId() - SELECT id FROM users
+    // Second query: SELECT farms
+    pool.query
+      .mockResolvedValueOnce({ rows: [mockUser] })
+      .mockResolvedValueOnce({ rows: mockFarms });
 
     const response = await request(app).get('/api/farms');
-
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     expect(response.body.length).toBeGreaterThan(0);
@@ -56,7 +64,7 @@ describe('Farms API', () => {
 
     const createdFarm = {
       id: 2,
-      user_id: 'auth0|test-user-123',
+      user_id: 1,
       farm_name: 'New Test Farm',
       location_name: 'Atlanta, GA',
       latitude: 33.749,
@@ -64,9 +72,11 @@ describe('Farms API', () => {
       created_at: new Date().toISOString(),
     };
 
-    pool.query.mockResolvedValueOnce({
-      rows: [createdFarm],
-    });
+    // First query: getInternalUserId() - SELECT id FROM users
+    // Second query: INSERT INTO farms
+    pool.query
+      .mockResolvedValueOnce({ rows: [mockUser] })
+      .mockResolvedValueOnce({ rows: [createdFarm] });
 
     const response = await request(app)
       .post('/api/farms')
@@ -80,10 +90,7 @@ describe('Farms API', () => {
   test('POST /api/farms returns 400 with missing fields', async () => {
     const response = await request(app)
       .post('/api/farms')
-      .send({
-        farmName: 'Test Farm',
-      });
-
+      .send({ farmName: 'Test Farm' });
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('error');
   });
@@ -97,30 +104,40 @@ describe('Farms API', () => {
         latitude: 999,
         longitude: -84.388,
       });
-
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('error');
   });
 
   test('GET /api/farms/:id returns farm', async () => {
-    pool.query.mockResolvedValueOnce({
-      rows: [mockFarms[0]],
-    });
+    // First query: getInternalUserId() - SELECT id FROM users
+    // Second query: SELECT farm
+    pool.query
+      .mockResolvedValueOnce({ rows: [mockUser] })
+      .mockResolvedValueOnce({ rows: [mockFarms[0]] });
 
     const response = await request(app).get('/api/farms/1');
-
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('id', 1);
     expect(response.body).toHaveProperty('farm_name', 'Test Farm');
   });
 
   test('GET /api/farms/:id returns 404 when farm not found', async () => {
-    pool.query.mockResolvedValueOnce({
-      rows: [],
-    });
+    // First query: getInternalUserId() - SELECT id FROM users
+    // Second query: SELECT farm (returns empty)
+    pool.query
+      .mockResolvedValueOnce({ rows: [mockUser] })
+      .mockResolvedValueOnce({ rows: [] });
 
     const response = await request(app).get('/api/farms/999');
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toHaveProperty('error');
+  });
 
+  test('GET /api/farms/:id returns 404 when user not found', async () => {
+    // First query: getInternalUserId() - SELECT id FROM users (returns empty)
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    const response = await request(app).get('/api/farms/1');
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('error');
   });

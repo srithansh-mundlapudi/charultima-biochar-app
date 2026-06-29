@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 // API keys for weather and geocoding services
 const WEATHER_API_KEY = '4d7f4c6942e64c2b9ef10628251002';
-const GEOCODE_API_KEY = 'd0752e928fdd471c87946f5eb16b2246';
+const GEOCODE_API_KEY = '89754f02bf58476e8ea098c393ab3ac4';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const Settings = () => {

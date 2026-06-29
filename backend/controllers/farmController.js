@@ -28,6 +28,9 @@ const createFarm = async (req, res) => {
     });
     res.status(201).json(farm);
   } catch (err) {
+    if (err.message === 'User not found') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     res.status(500).json({ error: err.message });
   }
 };
@@ -39,6 +42,9 @@ const getFarms = async (req, res) => {
     const farms = await farmService.getFarmsByUser(userId);
     res.json(farms);
   } catch (err) {
+    if (err.message === 'User not found') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     res.status(500).json({ error: err.message });
   }
 };
@@ -54,6 +60,9 @@ const getFarmById = async (req, res) => {
     }
     res.json(farm);
   } catch (err) {
+    if (err.message === 'User not found') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     res.status(500).json({ error: err.message });
   }
 };
