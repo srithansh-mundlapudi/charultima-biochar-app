@@ -105,3 +105,12 @@ jobs:
         run: |
           cd .
           npm run build
+
+  deploy:
+    name: Deploy to Render
+    needs: [test-backend, lint-backend, build-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
