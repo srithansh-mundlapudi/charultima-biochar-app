@@ -94,14 +94,14 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: charultima-biochar-app/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install frontend dependencies
         run: |
-          cd charultima-biochar-app
+          cd .
           npm ci
 
       - name: Build frontend
         run: |
-          cd charultima-biochar-app
+          cd .
           npm run build
