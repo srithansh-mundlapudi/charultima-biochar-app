@@ -59,6 +59,7 @@ const getAnalyses = async (req, res) => {
   const { farmId, limit = 100, offset = 0, search } = req.query;
 
   try {
+    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, 'analyses', farmId);
     const cached = await getCache(cacheKey);
 
@@ -83,6 +84,7 @@ const getDashboardStats = async (req, res) => {
   const { farmId } = req.query;
 
   try {
+    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, 'stats', farmId);
     const cached = await getCache(cacheKey);
 
@@ -91,6 +93,7 @@ const getDashboardStats = async (req, res) => {
     }
 
     const stats = await analysisService.getDashboardStats(userId, farmId);
+    
     await setCache(cacheKey, stats, CACHE_TTL);
 
     res.json(stats);
@@ -105,6 +108,7 @@ const getTrends = async (req, res) => {
   const daysInt = days ? parseInt(days, 10) : 30;
 
   try {
+    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, `trends:${daysInt}`, farmId);
     const cached = await getCache(cacheKey);
 
@@ -113,6 +117,7 @@ const getTrends = async (req, res) => {
     }
 
     const trends = await analysisService.getTrendAnalytics(userId, farmId, daysInt);
+    
     await setCache(cacheKey, trends, CACHE_TTL);
 
     res.json(trends);
@@ -173,6 +178,7 @@ const getHistoricalDashboard = async (req, res) => {
   const daysInt = parseInt(days, 10);
 
   try {
+    const start = Date.now();
     const cacheKey = getUserCacheKey(userId, `historical:${daysInt}`, farmId);
     const cached = await getCache(cacheKey);
 
@@ -181,6 +187,7 @@ const getHistoricalDashboard = async (req, res) => {
     }
 
     const dashboard = await analysisService.getHistoricalDashboard(userId, farmId, daysInt);
+    
     await setCache(cacheKey, dashboard, CACHE_TTL);
 
     res.json(dashboard);

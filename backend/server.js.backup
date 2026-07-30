@@ -33,7 +33,7 @@ app.use(
 // =======================
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.LOAD_TEST === 'true' ? 1000000 : 100, // 100 requests per window (raised for local load testing via LOAD_TEST env var)
+  max: 100, // 100 requests per window
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
