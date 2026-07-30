@@ -56,7 +56,7 @@ app.get('/api/docs.json', (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.json({ status: 'OK', time: result.rows[0].now });
+    res.json({ status: 'OK', time: result.rows[0].now, deployTest: 'cd-verified-v1' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
